@@ -12,7 +12,7 @@ import (
 )
 
 type InfoHashes struct {
-	InfoHash    string    `json:"info_hash" def:"varchar(20) NOT NULL DEFAULT '' COMMENT '信息哈希'" unique:"info_hash"`
+	InfoHash    string    `json:"info_hash" def:"varchar(40) NOT NULL DEFAULT '' COMMENT '信息哈希'" unique:"info_hash"`
 	InfoName    string    `json:"info_name" def:"varbinary(4096) NOT NULL DEFAULT '' COMMENT '名称'"`
 	TotalLength uint64    `json:"total_length" def:"bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '所有文件总大小（字节）'"`
 	TotalFiles  uint64    `json:"total_files" def:"bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '文件总数量'"`
