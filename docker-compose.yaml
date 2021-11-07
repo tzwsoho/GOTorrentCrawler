@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  GoTorrentCrawler:
+    image: go_torrent_crawler
+    container_name: GoTorrentCrawler
+    command: /TorrentCrawler
+    restart: always
+    ports:
+      - "6881:6881"
+    volumns:
+      - "config.json:/config.json:ro"

@@ -26,7 +26,7 @@ var DB *sql.DB
 
 func InitDB(user, pwd, ip, db string, port int) {
 	var err error
-	DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/", user, pwd, ip, port))
+	DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", user, pwd, ip, port, db))
 	if nil != err {
 		panic(err)
 	}
@@ -34,6 +34,8 @@ func InitDB(user, pwd, ip, db string, port int) {
 	DB.SetConnMaxLifetime(0)
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(10)
+
+	time.Sleep(time.Second)
 
 	createDBIfNotExists(db)
 	createTableIfNotExists(db, InfoHashes{})
@@ -49,7 +51,7 @@ func createDBIfNotExists(db string) {
 	var database string
 	row := DB.QueryRow("SHOW DATABASES WHERE `Database` = ?", db)
 	if err := row.Scan(&database); nil != err {
-		DB.Exec(fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8", db))
+		DB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4", db))
 	}
 
 	if _, err := DB.Exec(fmt.Sprintf("USE `%s`", db)); nil != err {
@@ -64,12 +66,12 @@ func createTableIfNotExists(db string, table interface{}) {
 	t := reflect.TypeOf(table)
 	row := DB.QueryRow(fmt.Sprintf("SHOW TABLES FROM `%s` WHERE `Tables_in_%s` = ?", db, db), strings.ToLower(t.Name()))
 	if err := row.Scan(&tableName); nil != err {
-		createSQL = fmt.Sprintf("CREATE TABLE `%s` (\n", strings.ToLower(t.Name()))
+		createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n", strings.ToLower(t.Name()))
 		for i := 0; i < t.NumField(); i++ {
 			f := t.Field(i)
 			createSQL += fmt.Sprintf("`%s` %s,\n", f.Tag.Get("json"), f.Tag.Get("def"))
 
-			if v, ok := f.Tag.Lookup("unique"); ok && "" != v {
+			if v, ok := f.Tag.Lookup("unique"); ok && v != "" {
 				if nil == unique[v] {
 					unique[v] = make([]string, 0)
 				}
@@ -82,10 +84,10 @@ func createTableIfNotExists(db string, table interface{}) {
 			createSQL += fmt.Sprintf("UNIQUE KEY `%s` (`%s`) USING BTREE\n", k, strings.Join(v, "`, `"))
 		}
 
-		createSQL += ") ENGINE=InnoDB DEFAULT CHARSET=utf8"
+		createSQL += ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 
 		if _, err := DB.Exec(createSQL); nil != err {
-			log.Panicf("createTableIfNotExists Exec err: %s", err.Error())
+			log.Panicf("createTableIfNotExists Exec %s err: %s", createSQL, err.Error())
 		}
 	}
 }
