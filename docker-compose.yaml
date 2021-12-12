@@ -1,11 +1,15 @@
 version: "3.7"
 services:
-  GoTorrentCrawler:
+  go-torrent-crawler:
     image: go_torrent_crawler
-    container_name: GoTorrentCrawler
-    command: /TorrentCrawler
+    container_name: go-torrent-crawler
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /GoTorrentCrawler/TorrentCrawler
     restart: always
     ports:
-      - "6881:6881"
-    volumns:
-      - "config.json:/config.json:ro"
+      - "6881:6881/tcp"
+      - "6881:6881/udp"
+    volumes:
+      - "./config.json:/config.json:ro"

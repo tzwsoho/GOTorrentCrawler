@@ -1,15 +1,23 @@
-FROM alpine:latest
+FROM golang as build
+
+ENV GO111MODULE=on
+ENV CGO_ENABLED=0
+ENV GOPROXY=https://goproxy.cn,direct
+
+WORKDIR /GoTorrentCrawler
+COPY . .
+
+RUN go build -tags netgo
+
+FROM alpine
 
 MAINTAINER tzwsoho "tzwsoho@hotmail.com"
 
-WORKDIR /
+WORKDIR /GoTorrentCrawler
 
-ADD TorrentCrawler /
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
 
-ENV MYSQL_IP=127.0.0.1
-ENV MYSQL_PORT=3306
-ENV MYSQL_USERNAME=root
-ENV MYSQL_PASSWORD=123456
-ENV PATH=/:$PATH
+COPY --from=build /GoTorrentCrawler/TorrentCrawler /GoTorrentCrawler/TorrentCrawler
 
 CMD ["TorrentCrawler"]
