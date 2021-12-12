@@ -14,10 +14,9 @@ FROM alpine
 MAINTAINER tzwsoho "tzwsoho@hotmail.com"
 
 WORKDIR /GoTorrentCrawler
-
-ENV DEBIAN_FRONTEND=noninteractive
-RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 COPY --from=build /GoTorrentCrawler/TorrentCrawler /GoTorrentCrawler/TorrentCrawler
+COPY --from=build /GoTorrentCrawler/config.json /GoTorrentCrawler/config.json
 
-CMD ["TorrentCrawler"]
+CMD ["./TorrentCrawler"]
